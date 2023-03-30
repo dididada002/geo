@@ -28,25 +28,26 @@ public class MyTask {
      * E:\tet\fuyang-linping
      */
 //    @Value("${srcPath}")
-//    private String srcPath = "E:\\tet\\fuyang-linping";
-    private String srcPath = "E:\\tet\\fuyang-linping\\fuyang\\240_0\\31";
+    private String srcPath = "/home/hualingfudata/fuyang/480_1";
 
     /**
      * E:\tet\fuyang-linping\pro
      */
 //    @Value("${targetPath}")
-    private String targetPath = "E:\\tet\\fuyang-linping\\pro\\";
+    private String targetPath = "/home/hualingfudata/fuyang-pro/";
 
-    private String targetZipPath = "E:\\tet\\fuyang-linping\\pro-zip\\";
+    private String targetZipPath = "/home/hualingfudata/fuyang-zip/";
 
-    String url = "http://182.92.107.134:8050/geoserver";    //geoserver的地址
+    String url = "http://localhost:8052/geoserver";    //geoserver的地址
     String un = "admin";         //geoserver的账号
     String pw = "geoserver";     //geoserver的密码
 
-    String workspace = "jingteng";     //工作区名称
-    String storename = "jingteng";     //数据源名称
-    String zoneStyle = "zone-test";
-    String linkStyle = "link-test";
+    String workspace = "fuyang";     //工作区名称
+    String storename = "fuyang";     //数据源名称
+    String zoneStyle = "fuyang:zone-test";
+    String linkStyle = "fuyang:link-test";
+    String zoneKey = "2D Zones";
+    String linkKey = "Links";
 
     public void execute() {
         //首先规整文件
@@ -81,22 +82,27 @@ public class MyTask {
         String name = file.getName();
         // E:\tet\fuyang-linping\fuyang\240_0\30\0 00_00\2D Zones.dbf
         String absolutePath = file.getAbsolutePath();
-        String[] pathArr = absolutePath.split("\\\\");
+        //过滤
+        if (absolutePath.contains("xml") || absolutePath.contains("DS_Store")){
+            return;
+        }
+//        String[] pathArr = absolutePath.split("\\\\");
+        String[] pathArr = absolutePath.split("/");
         int length = pathArr.length;
-        String j = pathArr[length - 4] + "_" + pathArr[length - 3];
+        String mm = pathArr[length - 3].replaceAll("mm", "");
+        String j = pathArr[length - 4] + "_" + mm;
         String[] s = pathArr[length - 2].split(" ");
         String strI = absolutePath.contains("Max") ? "max" : String.valueOf(map(s[1]));
         String[] split = name.split("\\.");
         String houzhui = split[1];
-//        String baseUrl = "D:\\private\\pro\\";
-        if (name.contains("2D Zones")){
+        if (name.contains(zoneKey)){
             System.out.println("===========zone start============");
             String url = targetPath + j + "_zone_" + strI + "." + houzhui;
             File targetFile = new File(url);
             System.out.println("===========zone start============");
             boolean b = file.renameTo(targetFile);
             System.out.println(b);
-        }else if (name.contains("Links")){
+        }else if (name.contains(linkKey)){
             System.out.println("===========link start============");
             String url = targetPath + j + "_link_" + strI + "." + houzhui;
             File targetFile = new File(url);
@@ -238,7 +244,6 @@ public class MyTask {
      */
     public List<String> publishShp(String layerZipPath){
         //shp文件压缩包，必须是zip压缩包，且shp文件(.shp、.dbf、.shx等)外层不能有文件夹，且压缩包名称需要与shp图层名称一致
-//        String zipFilePath = "D:\\private\\linping-zip\\" + layername + ".zip";
         List<String> failList = new ArrayList<>();
         try {
             //  1、获取geoserver连接对象
@@ -297,7 +302,7 @@ public class MyTask {
                     //图层名称               指定用于发布资源的方法
                     layername, it.geosolutions.geoserver.rest.GeoServerRESTPublisher.UploadMethod.FILE,
                     //        zip图集的地址           坐标系         样式
-                    file.toURI(),"EPSG:3857", "EPSG:3857", GSResourceEncoder.ProjectionPolicy.FORCE_DECLARED,style);
+                    file.toURI(),"EPSG:3857", "EPSG:3857", GSResourceEncoder.ProjectionPolicy.FORCE_DECLARED,null);
             if(!b){
                 System.out.println("shp图层发布失败");
                 return false;
